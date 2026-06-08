@@ -247,7 +247,21 @@ function savePositions(){
 }
 
 let POS = loadSavedPositions();
-const ASSIGN = {};
+const ASSIGN_KEY = 'seating-constructor-assignments';
+
+function loadAssignments(){
+  try{
+    return JSON.parse(localStorage.getItem(ASSIGN_KEY) || '{}');
+  }catch(e){
+    return {};
+  }
+}
+
+function saveAssignments(){
+  localStorage.setItem(ASSIGN_KEY, JSON.stringify(ASSIGN));
+}
+
+const ASSIGN = loadAssignments();
 let filterQ='';
 let dropQ='';
 let activeSeat=null;
@@ -263,17 +277,35 @@ function bindConstructor(){document.getElementById('toggle-constructor').onclick
 function startDrag(e){if(!constructorMode)return;const seatEl=e.target.closest('.seat');if(!seatEl)return;draggedSeat=seatEl;seatEl.classList.add('dragging');const s=+seatEl.dataset.seat;selectSeat(s);e.preventDefault();}
 function onDrag(e){if(!draggedSeat||!constructorMode)return;const rect=document.getElementById('scheme').getBoundingClientRect();let px=((e.clientX-rect.left)/rect.width)*560;let py=((e.clientY-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];
 savePositions();draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;}
-function endDrag(){if(!draggedSeat)return;draggedSeat.classList.remove('dragging');draggedSeat=null;}
-function resetPositions(){if(!confirm('Сбросить все позиции мест к исходным?'))return;POS=JSON.parse(JSON.stringify(DEFAULT_POS));savePositions();buildSeats();toast('Позиции сброшены');}
+function endDrag(){
+  if(!draggedSeat) return;
+  draggedSeat.classList.remove('dragging');
+  draggedSeat = null;
+  savePositions();
+}
+function resetPositions(){
+  if(!confirm('Сбросить все позиции мест к исходным?')) return;
+  POS = JSON.parse(JSON.stringify(DEFAULT_POS));
+  savePositions();
+  buildSeats();
+  toast('Позиции сброшены');
+}
 function copyCoords(){const text=JSON.stringify(POS,null,2);navigator.clipboard.writeText(text).then(()=>toast('Координаты скопированы'));}
 function downloadCoords(){const blob=new Blob([JSON.stringify(POS,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='seating-coordinates.json';a.click();toast('JSON скачан');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800);}
-function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?'))return;for(let k in ASSIGN)delete ASSIGN[k];buildTable();buildSeats();toast('Список гостей очищен');}
+function clearAllAssignments(){
+  if(!confirm('Очистить всех гостей из мест?')) return;
+  for(let k in ASSIGN) delete ASSIGN[k];
+  saveAssignments();
+  buildTable();
+  buildSeats();
+  toast('Список гостей очищен');
+}
 function filterTable(v){filterQ=v.trim().toLowerCase();buildTable();}
-function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});}
+function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];saveAssignments();closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});}
 function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
 function closeDrop(){document.getElementById('dropdown').classList.remove('open');}
-function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}};body.appendChild(el);});}
+function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};saveAssignments();closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}};body.appendChild(el);});}
 function addGuest(){
   const nameInput = document.getElementById('new-guest-name');
   const orgInput = document.getElementById('new-guest-org');
