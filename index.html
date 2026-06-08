@@ -25,7 +25,7 @@
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
-body{display:flex;flex-direction:column}
+body{display:flex;flex-direction:column;min-height:100dvh}
 header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:10px;flex:1;min-width:220px}
 .brand svg{width:30px;height:30px;flex-shrink:0}
@@ -35,16 +35,16 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-h)}
 .btn-outline{background:transparent;color:var(--text-muted);border:1px solid var(--border)}.btn-outline:hover{background:var(--surface-2);color:var(--text)}
 .btn-success{background:var(--hint);color:#fff}.btn-success:hover{filter:brightness(.95)}
-main{flex:1;display:grid;grid-template-columns:360px 1fr;min-height:0}
-.left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-.left-top{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+main{flex:1;display:grid;grid-template-columns:360px minmax(0,1fr);min-height:0}
+.left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;position:relative}
+.left-top{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;position:static}
 .left-top h2{font-size:13px;font-weight:700}.muted{font-size:11px;color:var(--text-muted);line-height:1.4}
 .search{width:100%;padding:7px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);font-size:12px;color:var(--text);font-family:var(--font);outline:none}
 .grid-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .tool-box{padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2)}
 .tool-box label{display:block;font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
 .tool-box input{width:100%;padding:6px 7px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);font-size:12px;font-family:var(--font);outline:none}
-.table-wrap{flex:1;overflow:auto}
+.table-wrap{flex:1;overflow:auto;min-height:0}
 table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;background:var(--surface-2);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}tbody tr{border-bottom:1px solid var(--border)}td{padding:4px 6px;vertical-align:middle}
 .badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--primary);color:#fff;font-size:10px;font-weight:700}
 .badge.empty{background:var(--seat-bg);color:var(--text-muted)}
@@ -55,7 +55,7 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 .right{display:flex;flex-direction:column;min-width:0;overflow:hidden}
 .right-top{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg)}
 .right-top .mode{font-size:12px;font-weight:700}.right-top .hint{font-size:11px;color:var(--hint)}
-.canvas-wrap{flex:1;overflow:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start}
+.canvas-wrap{flex:1;overflow:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start;min-height:0}
 .scheme-shell{position:relative;width:min(760px,100%);background:transparent}
 .scheme{position:relative;width:100%;aspect-ratio:560/600}
 .scheme svg{width:100%;height:100%;display:block}
@@ -72,48 +72,32 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 .coords-panel strong{font-size:12px}.coords-panel span{font-size:11px;color:var(--text-muted)}
 .dropdown{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.13);width:330px;max-height:300px;overflow:hidden;display:none;flex-direction:column}
 .dropdown.open{display:flex}.drop-head{padding:7px 10px;border-bottom:1px solid var(--border)}.drop-head input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);color:var(--text);font-size:12px;font-family:var(--font);outline:none}
-.drop-clear{padding:6px 10px;font-size:11px;color:var(--primary);cursor:pointer;border-bottom:1px solid var(--border)}.drop-clear:hover{background:var(--surface-2)}
-.drop-body{overflow:auto;flex:1}.drop-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border)}.drop-item:hover{background:var(--surface-2)}.di-name{font-size:12px;font-weight:600}.di-org{font-size:10px;color:var(--text-muted);margin-top:2px;display:block}
+.drop-clear{padding:6px 10px;font-size:11px;color:var(--primary);cursor:pointer;border-bottom:1px solid var(--border)}.drop-clear:hover{background:var(--surface-2)}.drop-body{overflow:auto;flex:1}.drop-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border)}.drop-item:hover{background:var(--surface-2)}.di-name{font-size:12px;font-weight:600}.di-org{font-size:10px;color:var(--text-muted);margin-top:2px;display:block}
 .toast{position:fixed;right:16px;bottom:16px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:none;z-index:1200}
 .toast.show{display:block}
-@media(max-width:980px){main{grid-template-columns:1fr;grid-template-rows:50vh 1fr}.left{border-right:none;border-bottom:1px solid var(--border)}}
-<style>
-  /* тут твои основные стили */
-  body { ... }
-  .sidebar { ... }
-  .main { ... }
-
-  @media (max-width: 900px){
-    .layout,
-    .page,
-    .app,
-    .wrap,
-    .container{
-      display: flex;
-      flex-direction: column;
-    }
-
-    .sidebar,
-    .left-panel,
-    .left-block,
-    .panel-left{
-      position: static !important;
-      width: 100% !important;
-      max-width: 100% !important;
-      height: auto !important;
-      min-height: auto !important;
-      top: auto !important;
-      left: auto !important;
-    }
-
-    .content,
-    .main,
-    .right-panel,
-    .workspace{
-      width: 100% !important;
-      max-width: 100% !important;
-    }
-  }
+@media (max-width:980px){
+  main{grid-template-columns:1fr;grid-template-rows:auto auto;min-height:auto}
+  .left{border-right:none;border-bottom:1px solid var(--border);overflow:visible;position:static}
+  .left-top{position:static}
+  .table-wrap{max-height:none;overflow:visible}
+  thead th{position:static}
+  .right{overflow:visible}
+  .right-top{align-items:flex-start;flex-direction:column}
+  .canvas-wrap{padding:12px;overflow:visible}
+}
+@media (max-width:720px){
+  header{padding:10px 12px}
+  .actions{width:100%}
+  .actions .btn{flex:1 1 calc(50% - 8px);justify-content:center}
+  .grid-tools{grid-template-columns:1fr}
+  .tool-box input,.search{font-size:16px}
+  .brand{min-width:0}
+  .right-top>div:last-child{font-size:11px!important}
+  .scheme-shell{width:100%}
+  .seat-dot{width:26px;height:26px;font-size:8px}
+  .seat-name{font-size:8px;max-width:58px}
+  .dropdown{left:12px!important;right:12px!important;width:auto;max-width:none}
+}
 </style>
 </head>
 <body>
@@ -144,12 +128,12 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
         <div class="tool-box"><label>Выбранное место</label><input id="selected-seat" value="—" readonly></div>
         <div class="tool-box"><label>Координаты</label><input id="selected-coords" value="x: —, y: —" readonly></div>
       </div>
-<div class="tool-box" style="display:flex;flex-direction:column;gap:8px">
-  <label>Добавить приглашённого</label>
-  <input id="new-guest-name" placeholder="ФИО или текст, например: Шинский Павел Николаевич +1">
-  <input id="new-guest-org" placeholder="Организация / комментарий">
-  <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
-</div>
+      <div class="tool-box" style="display:flex;flex-direction:column;gap:8px">
+        <label>Добавить приглашённого</label>
+        <input id="new-guest-name" placeholder="ФИО или текст, например: Шинский Павел Николаевич +1">
+        <input id="new-guest-org" placeholder="Организация / комментарий">
+        <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
@@ -258,45 +242,40 @@ const DEFAULT_POS = {
 };
 
 const STORAGE_KEY = 'seating-constructor-positions';
+function safeStorage(){
+  try{
+    const key='__seat_test__';
+    localStorage.setItem(key,'1');
+    localStorage.removeItem(key);
+    return localStorage;
+  }catch(e){
+    return null;
+  }
+}
+const storage = safeStorage();
 
 function loadSavedPositions(){
   try{
-    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!storage) return JSON.parse(JSON.stringify(DEFAULT_POS));
+    const raw = storage.getItem(STORAGE_KEY);
     if(!raw) return JSON.parse(JSON.stringify(DEFAULT_POS));
-
     const saved = JSON.parse(raw);
     const merged = JSON.parse(JSON.stringify(DEFAULT_POS));
-
     for(const key in saved){
-      if(merged[key] && Array.isArray(saved[key]) && saved[key].length === 2){
-        merged[key] = saved[key];
-      }
+      if(merged[key] && Array.isArray(saved[key]) && saved[key].length === 2) merged[key] = saved[key];
     }
-
     return merged;
   }catch(e){
     return JSON.parse(JSON.stringify(DEFAULT_POS));
   }
 }
-
-function savePositions(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(POS));
-}
-
+function savePositions(){ if(storage) storage.setItem(STORAGE_KEY, JSON.stringify(POS)); }
 let POS = loadSavedPositions();
 const ASSIGN_KEY = 'seating-constructor-assignments';
-
 function loadAssignments(){
-  try{
-    return JSON.parse(localStorage.getItem(ASSIGN_KEY) || '{}');
-  }catch(e){
-    return {};
-  }
+  try{ return storage ? JSON.parse(storage.getItem(ASSIGN_KEY) || '{}') : {}; }catch(e){ return {}; }
 }
-
-function saveAssignments(){
-  localStorage.setItem(ASSIGN_KEY, JSON.stringify(ASSIGN));
-}
+function saveAssignments(){ if(storage) storage.setItem(ASSIGN_KEY, JSON.stringify(ASSIGN)); }
 
 const ASSIGN = loadAssignments();
 let filterQ='';
@@ -307,67 +286,26 @@ let draggedSeat=null;
 
 function init(){buildTable();buildSeats();initDropdown();bindConstructor();}
 function buildTable(){const tb=document.getElementById('tbody');tb.innerHTML='';for(let s=1;s<=50;s++){const a=ASSIGN[s];const visible=!filterQ||String(s).includes(filterQ)||(a&&(a.n.toLowerCase().includes(filterQ)||a.o.toLowerCase().includes(filterQ)));if(!visible)continue;const tr=document.createElement('tr');tr.innerHTML=`<td><span class="badge ${a?'':'empty'}">${s}</span></td><td><button class="combo-btn ${a?'filled':''}" onclick="openDrop(${s},this)">${a?a.n:'<span class="ph">— выбрать —</span>'}</button></td><td><span class="org" title="${a?a.o:''}">${a?a.o:''}</span></td>`;tb.appendChild(tr);}}
-function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}">${a?a.n.split(' ')[0]:''}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('click',(e)=>selectSeat(s));ov.appendChild(node);}updateSelected();}
+function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}">${a?a.n.split(' ')[0]:''}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('touchstart',startDrag,{passive:false});dot.addEventListener('click',()=>selectSeat(s));ov.appendChild(node);}updateSelected();}
 function selectSeat(seat){const [x,y]=POS[seat];document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(x)}, y: ${Math.round(y)}`;activeSeat=seat;}
 function updateSelected(){if(activeSeat&&POS[activeSeat])selectSeat(activeSeat);}
-function bindConstructor(){document.getElementById('toggle-constructor').onclick=()=>{constructorMode=!constructorMode;document.getElementById('toggle-constructor').textContent='Конструктор: '+(constructorMode?'вкл':'выкл');document.getElementById('mode-text').textContent=constructorMode?'Режим конструктора':'Режим просмотра';document.getElementById('hint-text').textContent=constructorMode?'Тяни кружки мест мышкой. Координаты обновляются сразу.':'Включи конструктор, чтобы двигать места.';buildSeats();};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);}
+function bindConstructor(){document.getElementById('toggle-constructor').onclick=()=>{constructorMode=!constructorMode;document.getElementById('toggle-constructor').textContent='Конструктор: '+(constructorMode?'вкл':'выкл');document.getElementById('mode-text').textContent=constructorMode?'Режим конструктора':'Режим просмотра';document.getElementById('hint-text').textContent=constructorMode?'Тяни кружки мест мышкой или пальцем. Координаты обновляются сразу.':'Включи конструктор, чтобы двигать места.';buildSeats();};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);document.addEventListener('touchmove',onDrag,{passive:false});document.addEventListener('touchend',endDrag);}
+function getPoint(e){if(e.touches&&e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY};if(e.changedTouches&&e.changedTouches[0]) return {x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};return {x:e.clientX,y:e.clientY};}
 function startDrag(e){if(!constructorMode)return;const seatEl=e.target.closest('.seat');if(!seatEl)return;draggedSeat=seatEl;seatEl.classList.add('dragging');const s=+seatEl.dataset.seat;selectSeat(s);e.preventDefault();}
-function onDrag(e){if(!draggedSeat||!constructorMode)return;const rect=document.getElementById('scheme').getBoundingClientRect();let px=((e.clientX-rect.left)/rect.width)*560;let py=((e.clientY-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];
-savePositions();draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;}
-function endDrag(){
-  if(!draggedSeat) return;
-  draggedSeat.classList.remove('dragging');
-  draggedSeat = null;
-  savePositions();
-}
-function resetPositions(){
-  if(!confirm('Сбросить все позиции мест к исходным?')) return;
-  POS = JSON.parse(JSON.stringify(DEFAULT_POS));
-  savePositions();
-  buildSeats();
-  toast('Позиции сброшены');
-}
-function copyCoords(){const text=JSON.stringify(POS,null,2);navigator.clipboard.writeText(text).then(()=>toast('Координаты скопированы'));}
+function onDrag(e){if(!draggedSeat||!constructorMode)return;const point=getPoint(e);const rect=document.getElementById('scheme').getBoundingClientRect();let px=((point.x-rect.left)/rect.width)*560;let py=((point.y-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];savePositions();draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;if(e.cancelable)e.preventDefault();}
+function endDrag(){if(!draggedSeat) return;draggedSeat.classList.remove('dragging');draggedSeat = null;savePositions();}
+function resetPositions(){if(!confirm('Сбросить все позиции мест к исходным?')) return;POS = JSON.parse(JSON.stringify(DEFAULT_POS));savePositions();buildSeats();toast('Позиции сброшены');}
+function copyCoords(){const text=JSON.stringify(POS,null,2);navigator.clipboard.writeText(text).then(()=>toast('Координаты скопированы')).catch(()=>toast('Не удалось скопировать'));}
 function downloadCoords(){const blob=new Blob([JSON.stringify(POS,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='seating-coordinates.json';a.click();toast('JSON скачан');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800);}
-function clearAllAssignments(){
-  if(!confirm('Очистить всех гостей из мест?')) return;
-  for(let k in ASSIGN) delete ASSIGN[k];
-  saveAssignments();
-  buildTable();
-  buildSeats();
-  toast('Список гостей очищен');
-}
+function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?')) return;for(let k in ASSIGN) delete ASSIGN[k];saveAssignments();buildTable();buildSeats();toast('Список гостей очищен');}
 function filterTable(v){filterQ=v.trim().toLowerCase();buildTable();}
-function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];saveAssignments();closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});}
-function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
+function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];saveAssignments();closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});document.addEventListener('touchstart',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();},{passive:true});}
+function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();if(window.innerWidth<=720){dd.style.left='12px';dd.style.right='12px';dd.style.top=Math.max(12, r.bottom + 6)+'px';}else{dd.style.right='auto';dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';}dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
 function closeDrop(){document.getElementById('dropdown').classList.remove('open');}
-function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};saveAssignments();closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}};body.appendChild(el);});}
-function addGuest(){
-  const nameInput = document.getElementById('new-guest-name');
-  const orgInput = document.getElementById('new-guest-org');
-
-  const name = nameInput.value.trim();
-  const org = orgInput.value.trim();
-
-  if(!name){
-    toast('Введите имя приглашённого');
-    nameInput.focus();
-    return;
-  }
-
-  GUESTS.push({ n: name, o: org });
-
-  nameInput.value = '';
-  orgInput.value = '';
-
-  if(document.getElementById('dropdown').classList.contains('open')){
-    renderDrop();
-  }
-
-  toast('Приглашённый добавлен в список');
-}
-
+function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();assignGuest(g);};el.ontouchstart=(e)=>{e.preventDefault();assignGuest(g);};body.appendChild(el);});}
+function assignGuest(g){if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};saveAssignments();closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}}
+function addGuest(){const nameInput = document.getElementById('new-guest-name');const orgInput = document.getElementById('new-guest-org');const name = nameInput.value.trim();const org = orgInput.value.trim();if(!name){toast('Введите имя приглашённого');nameInput.focus();return;}GUESTS.push({ n: name, o: org });nameInput.value = '';orgInput.value = '';if(document.getElementById('dropdown').classList.contains('open')) renderDrop();toast('Приглашённый добавлен в список');}
 init();
 </script>
 </body>
