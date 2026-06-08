@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рассадка 2 — Конструктор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+<style>
+:root,[data-theme="light"]{
+  --bg:#f5f4f0;--surface:#fff;--surface-2:#f1eeea;
+  --border:rgba(0,0,0,0.11);--text:#28251d;--text-muted:#706e69;
+  --primary:#b83232;--primary-h:#952828;
+  --seat-bg:#e0dbd4;--seat-filled:#b83232;--seat-text:#fff;
+  --hint:#0c7a6b;
+  --font:'Inter',sans-serif;
+}
+[data-theme="dark"]{
+  --bg:#171614;--surface:#1e1d1b;--surface-2:#262421;
+  --border:rgba(255,255,255,0.09);--text:#cccac6;--text-muted:#807e7a;
+  --primary:#d44040;--primary-h:#b83232;
+  --seat-bg:#2a2926;--seat-filled:#b83232;--seat-text:#fff;
+  --hint:#4fb5a7;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;flex:1;min-width:220px}
+.brand svg{width:30px;height:30px;flex-shrink:0}
+.brand-title{font-size:14px;font-weight:700}.brand-sub{font-size:11px;color:var(--text-muted)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--font)}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-h)}
+.btn-outline{background:transparent;color:var(--text-muted);border:1px solid var(--border)}.btn-outline:hover{background:var(--surface-2);color:var(--text)}
+.btn-success{background:var(--hint);color:#fff}.btn-success:hover{filter:brightness(.95)}
+main{flex:1;display:grid;grid-template-columns:360px 1fr;min-height:0}
+.left{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.left-top{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.left-top h2{font-size:13px;font-weight:700}.muted{font-size:11px;color:var(--text-muted);line-height:1.4}
+.search{width:100%;padding:7px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface-2);font-size:12px;color:var(--text);font-family:var(--font);outline:none}
+.grid-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tool-box{padding:8px;border:1px solid var(--border);border-radius:8px;background:var(--surface-2)}
+.tool-box label{display:block;font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.tool-box input{width:100%;padding:6px 7px;border:1px solid var(--border);border-radius:5px;background:var(--surface);color:var(--text);font-size:12px;font-family:var(--font);outline:none}
+.table-wrap{flex:1;overflow:auto}
+table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;background:var(--surface-2);font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;text-align:left;border-bottom:1px solid var(--border)}tbody tr{border-bottom:1px solid var(--border)}td{padding:4px 6px;vertical-align:middle}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:4px;background:var(--primary);color:#fff;font-size:10px;font-weight:700}
+.badge.empty{background:var(--seat-bg);color:var(--text-muted)}
+.combo-btn{display:block;width:100%;padding:4px 7px;border-radius:5px;font-size:11.5px;text-align:left;border:1px solid transparent;background:transparent;cursor:pointer;color:var(--text);font-family:var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.combo-btn:hover{background:var(--surface-2);border-color:var(--border)}
+.combo-btn .ph{color:var(--text-muted)}
+.combo-btn.filled{font-weight:600}
+.org{font-size:10px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100px}
+.right{display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.right-top{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--bg)}
+.right-top .mode{font-size:12px;font-weight:700}.right-top .hint{font-size:11px;color:var(--hint)}
+.canvas-wrap{flex:1;overflow:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start}
+.scheme-shell{position:relative;width:min(760px,100%);background:transparent}
+.scheme{position:relative;width:100%;aspect-ratio:560/600}
+.scheme svg{width:100%;height:100%;display:block}
+.overlay{position:absolute;inset:0}
+.seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;user-select:none}
+.seat.dragging{z-index:50}
+.seat-dot{width:28px;height:28px;border-radius:50%;background:var(--seat-bg);border:2px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--text-muted);cursor:grab}
+.seat-dot.filled{background:var(--seat-filled);color:var(--seat-text);border-color:var(--primary-h)}
+.constructor-on .seat-dot{cursor:grab;box-shadow:0 0 0 2px rgba(12,122,107,.15)}
+.constructor-on .seat-dot:hover{box-shadow:0 0 0 3px rgba(12,122,107,.25)}
+.seat.dragging .seat-dot{cursor:grabbing;box-shadow:0 0 0 4px rgba(12,122,107,.35)}
+.seat-name{font-size:7px;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-weight:600;line-height:1.2}.seat-name.on{color:var(--text)}
+.coords-panel{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.coords-panel strong{font-size:12px}.coords-panel span{font-size:11px;color:var(--text-muted)}
+.dropdown{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.13);width:330px;max-height:300px;overflow:hidden;display:none;flex-direction:column}
+.dropdown.open{display:flex}.drop-head{padding:7px 10px;border-bottom:1px solid var(--border)}.drop-head input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);color:var(--text);font-size:12px;font-family:var(--font);outline:none}
+.drop-clear{padding:6px 10px;font-size:11px;color:var(--primary);cursor:pointer;border-bottom:1px solid var(--border)}.drop-clear:hover{background:var(--surface-2)}
+.drop-body{overflow:auto;flex:1}.drop-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border)}.drop-item:hover{background:var(--surface-2)}.di-name{font-size:12px;font-weight:600}.di-org{font-size:10px;color:var(--text-muted);margin-top:2px;display:block}
+.toast{position:fixed;right:16px;bottom:16px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:none;z-index:1200}
+.toast.show{display:block}
+@media(max-width:980px){main{grid-template-columns:1fr;grid-template-rows:50vh 1fr}.left{border-right:none;border-bottom:1px solid var(--border)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <svg viewBox="0 0 30 30" fill="none" aria-label="logo"><rect width="30" height="30" rx="6" fill="#b83232"/><path d="M6 22v-9l9-6 9 6v9" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/><path d="M6 22l9 5 9-5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linejoin="round"/><circle cx="15" cy="15" r="2.5" stroke="#fff" stroke-width="1.4" fill="none"/></svg>
+    <div>
+      <div class="brand-title">Рассадка 2 — Конструктор</div>
+      <div class="brand-sub">Перетаскивай места мышкой и сохраняй свои координаты</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn btn-success" id="toggle-constructor">Конструктор: выкл</button>
+    <button class="btn btn-outline" onclick="resetPositions()">Сбросить позиции</button>
+    <button class="btn btn-outline" onclick="copyCoords()">Копировать координаты</button>
+    <button class="btn btn-primary" onclick="downloadCoords()">Скачать JSON</button>
+    <button class="btn btn-outline" onclick="clearAllAssignments()">Очистить гостей</button>
+  </div>
+</header>
+
+<main>
+  <div class="left">
+    <div class="left-top">
+      <h2>Гости и места</h2>
+      <div class="muted">Выбирай ФИО из выпадающего списка. Когда включён режим конструктора — можно мышкой двигать любое место на схеме справа.</div>
+      <input class="search" id="search" placeholder="Поиск по месту, ФИО, организации…" oninput="filterTable(this.value)">
+      <div class="grid-tools">
+        <div class="tool-box"><label>Выбранное место</label><input id="selected-seat" value="—" readonly></div>
+        <div class="tool-box"><label>Координаты</label><input id="selected-coords" value="x: —, y: —" readonly></div>
+      </div>
+<div class="tool-box" style="display:flex;flex-direction:column;gap:8px">
+  <label>Добавить приглашённого</label>
+  <input id="new-guest-name" placeholder="ФИО или текст, например: Шинский Павел Николаевич +1">
+  <input id="new-guest-org" placeholder="Организация / комментарий">
+  <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
+</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th style="width:34px">№</th><th>ФИО</th><th>Организация</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="right-top">
+      <div>
+        <div class="mode" id="mode-text">Режим просмотра</div>
+        <div class="hint" id="hint-text">Включи конструктор, чтобы двигать места.</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted)">560 × 600 координатная сетка</div>
+    </div>
+    <div class="canvas-wrap">
+      <div class="scheme-shell">
+        <div class="scheme" id="scheme">
+          <svg viewBox="0 0 560 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="148" y="96" width="264" height="50" rx="5" fill="#cbc5bc" stroke="#9a9289" stroke-width="1.5"/>
+            <rect x="148" y="96" width="50" height="300" rx="5" fill="#cbc5bc" stroke="#9a9289" stroke-width="1.5"/>
+            <rect x="362" y="96" width="50" height="300" rx="5" fill="#cbc5bc" stroke="#9a9289" stroke-width="1.5"/>
+            <rect x="164" y="112" width="232" height="18" rx="3" fill="#ddd8d0"/>
+            <rect x="164" y="112" width="18" height="268" rx="3" fill="#ddd8d0"/>
+            <rect x="378" y="112" width="18" height="268" rx="3" fill="#ddd8d0"/>
+            <rect x="196" y="160" width="168" height="36" rx="4" fill="#bfbab1" stroke="#aaa59d" stroke-width="1"/>
+            <rect x="196" y="196" width="36" height="196" rx="4" fill="#bfbab1" stroke="#aaa59d" stroke-width="1"/>
+            <rect x="328" y="196" width="36" height="196" rx="4" fill="#bfbab1" stroke="#aaa59d" stroke-width="1"/>
+            <rect x="148" y="386" width="50" height="14" rx="3" fill="#b8b3aa"/>
+            <rect x="362" y="386" width="50" height="14" rx="3" fill="#b8b3aa"/>
+            <rect x="148" y="96" width="264" height="4" rx="2" fill="#e0dbd3" opacity=".7"/>
+            <rect x="148" y="96" width="4" height="304" rx="2" fill="#e0dbd3" opacity=".7"/>
+            <rect x="408" y="96" width="4" height="304" rx="2" fill="#e0dbd3" opacity=".6"/>
+          </svg>
+          <div class="overlay" id="overlay"></div>
+        </div>
+      </div>
+    </div>
+    <div class="coords-panel">
+      <strong>Подсказка:</strong>
+      <span>включи конструктор → потяни место мышкой → нажми «Скачать JSON» или «Копировать координаты».</span>
+    </div>
+  </div>
+</main>
+
+<div class="dropdown" id="dropdown">
+  <div class="drop-head"><input id="drop-search" placeholder="Поиск по ФИО…" autocomplete="off"></div>
+  <div class="drop-clear" id="drop-clear">— Очистить место —</div>
+  <div class="drop-body" id="drop-body"></div>
+</div>
+<div class="toast" id="toast">Скопировано</div>
+
+<script>
+let GUESTS = [
+  {n:"Астамур Омарович Логуа",o:"Министр туризма, Республика Абхазия"},
+  {n:"Дмитрий Робертович Зантария",o:"Заместитель министра туризма, Республика Абхазия"},
+  {n:"К.Г. Машарский",o:"Глава Национального агентства по туризму, Республика Беларусь"},
+  {n:"Э.Д. Кубатов",o:"Директор Государственного агентства по развитию туризма, Кыргызская Республика"},
+  {n:"А.А. Абдыкапарова",o:"Заведующая отделом правового обеспечения и маркетинга, Кыргызская Республика"},
+  {n:"Мара Стотти",o:"Министр туризма, содиректор INTUR, Республика Никарагуа"},
+  {n:"Альба Асусена Торрес Мехия",o:"Посол, Республика Никарагуа"},
+  {n:"С.Э. Котаев",o:"Министр экономики, Республика Южная Осетия – Государство Алания"},
+  {n:"Альберт Техов",o:"Заместитель министра экономики, Республика Южная Осетия"},
+  {n:"Даниэлла Кабельо",o:"Министр туризма, Боливарианская Республика Венесуэла"},
+  {n:"Маркос Медина",o:"Заместитель министра по международному туризму, Венесуэла"},
+  {n:"Делиз Альварез",o:"Президент Венетур, Боливарианская Республика Венесуэла"},
+  {n:"Хорхе Альберто Гарсия Домингес",o:"Первый заместитель министра туризма, Республика Куба"},
+  {n:"Энрике Орта Гонсалес",o:"Посол, Республика Куба"},
+  {n:"Кристина Леон Изнага",o:"Советник по туризму Посольства Республики Куба в РФ"},
+  {n:"Руван Ранасингхе",o:"Заместитель министра иностранных дел и туризма, Шри-Ланка"},
+  {n:"Шобини Гунасекера",o:"Посол, Демократическая Социалистическая Республика Шри-Ланка"},
+  {n:"Анна Макаровская",o:"Советник по вопросам торговли, экономики и туризма Посольства Шри-Ланки"},
+  {n:"Джума Аль Каит",o:"Советник министра экономики и туризма, Объединённые Арабские Эмираты"},
+  {n:"Мохаммед Аль Джабер",o:"Посол ОАЭ в РФ"},
+  {n:"Хур Аль Хаджа",o:"Старший вице-президент по международным операциям Департамента экономики и туризма Дубая"},
+  {n:"Х. Дениз Эрсоз",o:"Начальник отдела стран России и Восточной Европы, Министерство культуры и туризма, Турция"},
+  {n:"Илькер Озкан",o:"Атташе по культуре и туризму Посольства Турецкой Республики в РФ"},
+  {n:"Фио За Сое",o:"Заместитель министра по отелям, туризму и культуре, Республика Союз Мьянма"},
+  {n:"Тин Мьо Аунг",o:"Заместитель директора Министерства по отелям, туризму и культуре, Мьянма"},
+  {n:"Мозес Каваалууко Кизиге",o:"Посол Республики Уганда в РФ"},
+  {n:"Рутазиндва Гидеон",o:"Заместитель посла Республики Уганда в РФ"},
+  {n:"Зита Анджани",o:"Специальный представитель Президента Республики Индонезия по вопросам туризма"},
+  {n:"Лу Инчуань",o:"Заместитель Министра культуры и туризма, Китайская Народная Республика"},
+  {n:"Ма Сяочэнь",o:"Заместитель секретаря партийного комитета, Департамент международных связей, Министерство культуры и туризма КНР"},
+  {n:"Ли Вэньнань",o:"Начальник отдела Евразии, Министерство культуры и туризма, КНР"},
+  {n:"Фэн Литао",o:"Советник-посланник Посольства КНР в РФ"},
+  {n:"Маджд Абу Аркуб",o:"Маркетинг-менеджер Управления по туризму, Иордания"},
+  {n:"Резерв (Индонезия)",o:"Индонезия — резерв"},
+  {n:"Резерв (Узбекистан) 1",o:"Узбекистан — резерв"},
+  {n:"Резерв (Узбекистан) 2",o:"Узбекистан — резерв"},
+  {n:"Решетников М.Г.",o:"Министр экономического развития Российской Федерации"},
+  {n:"Вахруков Д.С.",o:"Заместитель Министра экономического развития Российской Федерации"},
+  {n:"Тарбаев С.А.",o:"Председатель Комитета Государственной Думы по туризму"},
+  {n:"Смелов П.А.",o:"Генеральный директор ЦСР"},
+  {n:"Стуглев А.А.",o:"Директор Фонда «Росконгресс»"},
+  {n:"Затынайко В.В.",o:"Заместитель директора Фонда «Росконгресс»"},
+  {n:"Мордвинцева Л.И.",o:"Заместитель директора Международного туристического форума «Путешествуй!»"},
+  {n:"Шинский Павел Николаевич",o:"Генеральный директор Франко-российской торгово-промышленной палаты"},
+  {n:"Чеканова Юлия Андреевна",o:"Амбассадор Discover Russia"},
+  {n:"Козлов Евгений Александрович",o:"Глава комитета по туризму"},
+];
+const DEFAULT_POS = {
+  1:[206,412],2:[170,411],3:[216,365],4:[132,407],5:[215,335],6:[132,374],7:[213,305],8:[132,341],9:[214,279],10:[132,309],11:[213,253],12:[132,274],13:[214,223],14:[132,242],15:[214,197],16:[132,210],17:[235,164],18:[132,178],19:[256,187],20:[132,145],21:[288,162],22:[132,113],23:[314,188],24:[151,88],25:[350,172],26:[185,85],27:[350,209],28:[222,83],29:[350,240],30:[255,83],31:[351,273],32:[287,83],33:[350,312],34:[318,83],35:[350,340],36:[350,81],37:[350,371],38:[384,82],39:[430,105],40:[430,133],41:[430,161],42:[430,193],43:[430,229],44:[430,261],45:[430,297],46:[430,335],47:[430,368],48:[430,398],49:[405,416],50:[353,415]
+};
+
+const STORAGE_KEY = 'seating-constructor-positions';
+
+function loadSavedPositions(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(!raw) return JSON.parse(JSON.stringify(DEFAULT_POS));
+
+    const saved = JSON.parse(raw);
+    const merged = JSON.parse(JSON.stringify(DEFAULT_POS));
+
+    for(const key in saved){
+      if(merged[key] && Array.isArray(saved[key]) && saved[key].length === 2){
+        merged[key] = saved[key];
+      }
+    }
+
+    return merged;
+  }catch(e){
+    return JSON.parse(JSON.stringify(DEFAULT_POS));
+  }
+}
+
+function savePositions(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(POS));
+}
+
+let POS = loadSavedPositions();
+const ASSIGN = {};
+let filterQ='';
+let dropQ='';
+let activeSeat=null;
+let constructorMode=false;
+let draggedSeat=null;
+
+function init(){buildTable();buildSeats();initDropdown();bindConstructor();}
+function buildTable(){const tb=document.getElementById('tbody');tb.innerHTML='';for(let s=1;s<=50;s++){const a=ASSIGN[s];const visible=!filterQ||String(s).includes(filterQ)||(a&&(a.n.toLowerCase().includes(filterQ)||a.o.toLowerCase().includes(filterQ)));if(!visible)continue;const tr=document.createElement('tr');tr.innerHTML=`<td><span class="badge ${a?'':'empty'}">${s}</span></td><td><button class="combo-btn ${a?'filled':''}" onclick="openDrop(${s},this)">${a?a.n:'<span class="ph">— выбрать —</span>'}</button></td><td><span class="org" title="${a?a.o:''}">${a?a.o:''}</span></td>`;tb.appendChild(tr);}}
+function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}">${a?a.n.split(' ')[0]:''}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('click',(e)=>selectSeat(s));ov.appendChild(node);}updateSelected();}
+function selectSeat(seat){const [x,y]=POS[seat];document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(x)}, y: ${Math.round(y)}`;activeSeat=seat;}
+function updateSelected(){if(activeSeat&&POS[activeSeat])selectSeat(activeSeat);}
+function bindConstructor(){document.getElementById('toggle-constructor').onclick=()=>{constructorMode=!constructorMode;document.getElementById('toggle-constructor').textContent='Конструктор: '+(constructorMode?'вкл':'выкл');document.getElementById('mode-text').textContent=constructorMode?'Режим конструктора':'Режим просмотра';document.getElementById('hint-text').textContent=constructorMode?'Тяни кружки мест мышкой. Координаты обновляются сразу.':'Включи конструктор, чтобы двигать места.';buildSeats();};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);}
+function startDrag(e){if(!constructorMode)return;const seatEl=e.target.closest('.seat');if(!seatEl)return;draggedSeat=seatEl;seatEl.classList.add('dragging');const s=+seatEl.dataset.seat;selectSeat(s);e.preventDefault();}
+function onDrag(e){if(!draggedSeat||!constructorMode)return;const rect=document.getElementById('scheme').getBoundingClientRect();let px=((e.clientX-rect.left)/rect.width)*560;let py=((e.clientY-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];
+savePositions();draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;}
+function endDrag(){if(!draggedSeat)return;draggedSeat.classList.remove('dragging');draggedSeat=null;}
+function resetPositions(){if(!confirm('Сбросить все позиции мест к исходным?'))return;POS=JSON.parse(JSON.stringify(DEFAULT_POS));savePositions();buildSeats();toast('Позиции сброшены');}
+function copyCoords(){const text=JSON.stringify(POS,null,2);navigator.clipboard.writeText(text).then(()=>toast('Координаты скопированы'));}
+function downloadCoords(){const blob=new Blob([JSON.stringify(POS,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='seating-coordinates.json';a.click();toast('JSON скачан');}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800);}
+function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?'))return;for(let k in ASSIGN)delete ASSIGN[k];buildTable();buildSeats();toast('Список гостей очищен');}
+function filterTable(v){filterQ=v.trim().toLowerCase();buildTable();}
+function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});}
+function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
+function closeDrop(){document.getElementById('dropdown').classList.remove('open');}
+function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}};body.appendChild(el);});}
+function addGuest(){
+  const nameInput = document.getElementById('new-guest-name');
+  const orgInput = document.getElementById('new-guest-org');
+
+  const name = nameInput.value.trim();
+  const org = orgInput.value.trim();
+
+  if(!name){
+    toast('Введите имя приглашённого');
+    nameInput.focus();
+    return;
+  }
+
+  GUESTS.push({ n: name, o: org });
+
+  nameInput.value = '';
+  orgInput.value = '';
+
+  if(document.getElementById('dropdown').classList.contains('open')){
+    renderDrop();
+  }
+
+  toast('Приглашённый добавлен в список');
+}
+
+init();
+</script>
+</body>
+</html>
