@@ -315,7 +315,6 @@ function normalizeGuests(input){
   if(!Array.isArray(input) || !input.length) return GUESTS;
   return input.filter(v => v && typeof v.n === 'string').map(v => ({ n: v.n, o: typeof v.o === 'string' ? v.o : '' }));
 }
-const DEFAULT_GUESTS = JSON.parse(JSON.stringify(GUESTS));
 
 async function ensureInitialData(){
   const snap = await get(ROOT_REF);
@@ -323,7 +322,7 @@ async function ensureInitialData(){
     await set(ROOT_REF, {
       positions: DEFAULT_POS,
       assignments: {},
-      guests: DEFAULT_GUESTS,
+      guests: GUESTS,
       meta: { updatedAt: Date.now(), version: 1 }
     });
   }
