@@ -60,14 +60,14 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 .scheme{position:relative;width:100%;aspect-ratio:560/600}
 .scheme svg{width:100%;height:100%;display:block}
 .overlay{position:absolute;inset:0}
-.seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;user-select:none}
+.seat{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;user-select:none}
 .seat.dragging{z-index:50}
-.seat-dot{width:28px;height:28px;border-radius:50%;background:var(--seat-bg);border:2px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--text-muted);cursor:grab}
+.seat-dot{width:28px;height:28px;border-radius:50%;background:var(--seat-bg);border:2px solid rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--text-muted);cursor:grab;position:relative;z-index:2}
 .seat-dot.filled{background:var(--seat-filled);color:var(--seat-text);border-color:var(--primary-h)}
 .constructor-on .seat-dot{cursor:grab;box-shadow:0 0 0 2px rgba(12,122,107,.15)}
 .constructor-on .seat-dot:hover{box-shadow:0 0 0 3px rgba(12,122,107,.25)}
 .seat.dragging .seat-dot{cursor:grabbing;box-shadow:0 0 0 4px rgba(12,122,107,.35)}
-.seat-name{font-size:7px;max-width:54px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-weight:600;line-height:1.2}.seat-name.on{color:var(--text)}
+.seat-name{font-size:7px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-weight:700;line-height:1.2;padding:1px 6px;border-radius:999px;background:color-mix(in srgb, var(--surface) 92%, transparent);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06)}.seat-name.on{color:var(--text)}
 .coords-panel{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .coords-panel strong{font-size:12px}.coords-panel span{font-size:11px;color:var(--text-muted)}
 .dropdown{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.13);width:330px;max-height:min(70vh,420px);overflow:hidden;display:none;flex-direction:column;touch-action:manipulation}
@@ -97,8 +97,8 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
   .brand{min-width:0}
   .right-top>div:last-child{font-size:11px!important}
   .scheme-shell{width:100%}
-  .seat-dot{width:26px;height:26px;font-size:8px}
-  .seat-name{font-size:8px;max-width:58px}
+  .seat-dot{width:24px;height:24px;font-size:8px}
+  .seat-name{font-size:9px;max-width:86px}
   .dropdown{left:12px!important;right:12px!important;width:auto;max-width:none;max-height:60vh}
 }
 </style>
@@ -329,7 +329,7 @@ function init(){
   bindFirebase();
 }
 function buildTable(){const tb=document.getElementById('tbody');tb.innerHTML='';for(let s=1;s<=50;s++){const a=ASSIGN[s];const visible=!filterQ||String(s).includes(filterQ)||(a&&(a.n.toLowerCase().includes(filterQ)||a.o.toLowerCase().includes(filterQ)));if(!visible)continue;const tr=document.createElement('tr');tr.innerHTML=`<td><span class="badge ${a?'':'empty'}">${s}</span></td><td><button class="combo-btn ${a?'filled':''}" onclick="openDrop(${s},this)">${a?a.n:'<span class="ph">— выбрать —</span>'}</button></td><td><span class="org" title="${a?a.o:''}">${a?a.o:''}</span></td>`;tb.appendChild(tr);}}
-function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}">${a?a.n.split(' ')[0]:''}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('touchstart',startDrag,{passive:false});dot.addEventListener('click',()=>selectSeat(s));ov.appendChild(node);}updateSelected();}
+function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';const shortName = a ? a.n.split(' ').slice(0,2).join(' ') : '';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}" title="${a?a.n:''}">${shortName}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('touchstart',startDrag,{passive:false});dot.addEventListener('click',()=>selectSeat(s));ov.appendChild(node);}updateSelected();}
 function selectSeat(seat){const [x,y]=POS[seat];document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(x)}, y: ${Math.round(y)}`;activeSeat=seat;}
 function updateSelected(){if(activeSeat&&POS[activeSeat])selectSeat(activeSeat);}
 function bindConstructor(){document.getElementById('toggle-constructor').onclick=()=>{constructorMode=!constructorMode;document.getElementById('toggle-constructor').textContent='Конструктор: '+(constructorMode?'вкл':'выкл');document.getElementById('mode-text').textContent=constructorMode?'Режим конструктора':'Режим просмотра';document.getElementById('hint-text').textContent=constructorMode?'Тяни кружки мест мышкой или пальцем. Координаты обновляются сразу.':'Включи конструктор, чтобы двигать места.';buildSeats();};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);document.addEventListener('touchmove',onDrag,{passive:false});document.addEventListener('touchend',endDrag);}
