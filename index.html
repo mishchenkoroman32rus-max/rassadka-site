@@ -70,7 +70,7 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 .seat-name{font-size:7px;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-muted);font-weight:700;line-height:1.2;padding:1px 6px;border-radius:999px;background:color-mix(in srgb, var(--surface) 92%, transparent);border:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.06)}.seat-name.on{color:var(--text)}
 .coords-panel{padding:10px 12px;border-top:1px solid var(--border);background:var(--surface);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .coords-panel strong{font-size:12px}.coords-panel span{font-size:11px;color:var(--text-muted)}
-.dropdown{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.13);width:330px;max-height:min(70vh,420px);overflow:hidden;display:none;flex-direction:column;touch-action:manipulation}
+.dropdown{position:fixed;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:0 8px 28px rgba(0,0,0,.13);width:380px;max-height:80vh;overflow:hidden;display:none;flex-direction:column;touch-action:manipulation}
 .dropdown.open{display:flex}.drop-head{padding:7px 10px;border-bottom:1px solid var(--border)}.drop-head input{width:100%;padding:6px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);color:var(--text);font-size:12px;font-family:var(--font);outline:none}
 .drop-clear{padding:6px 10px;font-size:11px;color:var(--primary);cursor:pointer;border-bottom:1px solid var(--border)}.drop-clear:hover{background:var(--surface-2)}.drop-body{overflow:auto;flex:1;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:pan-y}.drop-item{padding:10px 10px;cursor:pointer;border-bottom:1px solid var(--border);touch-action:manipulation}.drop-item:hover{background:var(--surface-2)}.di-name{font-size:12px;font-weight:600}.di-org{font-size:10px;color:var(--text-muted);margin-top:2px;display:block}
 .toast{position:fixed;right:16px;bottom:16px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:none;z-index:1200}
@@ -351,7 +351,47 @@ function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t
 async function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?')) return;ASSIGN = {};buildTable();buildSeats();await syncAssignments();toast('Список гостей очищен');}
 function filterTable(v){filterQ=v.trim().toLowerCase();buildTable();}
 function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=async()=>{if(activeSeat){delete ASSIGN[activeSeat];buildTable();buildSeats();await syncAssignments();closeDrop();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});document.addEventListener('touchstart',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();},{passive:true});}
-function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();if(window.innerWidth<=720){dd.style.left='12px';dd.style.right='12px';dd.style.top=Math.max(12, r.bottom + 6)+'px';}else{dd.style.right='auto';dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';}dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
+function openDrop(seat,btn){
+  activeSeat = seat;
+  selectSeat(seat);
+  dropQ = '';
+  document.getElementById('drop-search').value = '';
+  renderDrop();
+
+  const dd = document.getElementById('dropdown');
+  const r = btn.getBoundingClientRect();
+  const margin = 12;
+
+  dd.classList.add('open');
+  dd.style.bottom = 'auto';
+
+  const viewportH = window.innerHeight;
+  const spaceBelow = viewportH - r.bottom - margin;
+  const spaceAbove = r.top - margin;
+
+  if(window.innerWidth <= 720){
+    dd.style.left = '12px';
+    dd.style.right = '12px';
+    dd.style.width = 'auto';
+    dd.style.maxHeight = '60vh';
+    dd.style.top = Math.max(12, r.bottom + 6) + 'px';
+  } else {
+    dd.style.right = 'auto';
+    dd.style.left = Math.min(r.left, window.innerWidth - 392) + 'px';
+    dd.style.width = '380px';
+
+    if(spaceBelow >= 260 || spaceBelow >= spaceAbove){
+      dd.style.top = (r.bottom + 4) + 'px';
+      dd.style.maxHeight = Math.max(220, spaceBelow) + 'px';
+    } else {
+      const topPos = Math.max(margin, r.top - Math.max(220, spaceAbove) - 4);
+      dd.style.top = topPos + 'px';
+      dd.style.maxHeight = Math.max(220, spaceAbove) + 'px';
+    }
+  }
+
+  setTimeout(() => document.getElementById('drop-search').focus(), 20);
+}
 function closeDrop(){document.getElementById('dropdown').classList.remove('open');}
 function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.addEventListener('click',()=>assignGuest(g));body.appendChild(el);});}
 async function assignGuest(g){if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};closeDrop();buildTable();buildSeats();await syncAssignments();toast('Гость назначен на место '+activeSeat);}}
