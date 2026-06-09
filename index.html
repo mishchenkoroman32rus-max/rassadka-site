@@ -75,6 +75,9 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 .drop-clear{padding:6px 10px;font-size:11px;color:var(--primary);cursor:pointer;border-bottom:1px solid var(--border)}.drop-clear:hover{background:var(--surface-2)}.drop-body{overflow:auto;flex:1}.drop-item{padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--border)}.drop-item:hover{background:var(--surface-2)}.di-name{font-size:12px;font-weight:600}.di-org{font-size:10px;color:var(--text-muted);margin-top:2px;display:block}
 .toast{position:fixed;right:16px;bottom:16px;background:var(--surface);color:var(--text);border:1px solid var(--border);padding:10px 12px;border-radius:8px;font-size:12px;box-shadow:0 6px 24px rgba(0,0,0,.12);display:none;z-index:1200}
 .toast.show{display:block}
+.sync-status{font-size:11px;color:var(--text-muted);padding:0 12px 10px}
+.sync-status.ok{color:var(--hint)}
+.sync-status.err{color:var(--primary)}
 @media (max-width:980px){
   main{grid-template-columns:1fr;grid-template-rows:auto auto;min-height:auto}
   .left{border-right:none;border-bottom:1px solid var(--border);overflow:visible;position:static}
@@ -135,6 +138,7 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
         <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
       </div>
     </div>
+    <div class="sync-status" id="sync-status">Локальный режим. Ожидание подключения к Firebase…</div>
     <div class="table-wrap">
       <table>
         <thead><tr><th style="width:34px">№</th><th>ФИО</th><th>Организация</th></tr></thead>
@@ -176,7 +180,7 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
     </div>
     <div class="coords-panel">
       <strong>Подсказка:</strong>
-      <span>включи конструктор → потяни место мышкой → нажми «Скачать JSON» или «Копировать координаты».</span>
+      <span>включи конструктор → потяни место мышкой → изменения теперь сохраняются в общей Firebase-базе.</span>
     </div>
   </div>
 </main>
@@ -188,7 +192,29 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
 </div>
 <div class="toast" id="toast">Скопировано</div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDGWatf6lf57qp_c23Bwyllul1GYxDo9Bo",
+  authDomain: "rassadka-2.firebaseapp.com",
+  databaseURL: "https://rassadka-2-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "rassadka-2",
+  storageBucket: "rassadka-2.firebasestorage.app",
+  messagingSenderId: "369693473986",
+  appId: "1:369693473986:web:b437f7087989821297cf5b",
+  measurementId: "G-89LJRT7MHW"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const ROOT_REF = ref(db, 'seating2');
+const POS_REF = ref(db, 'seating2/positions');
+const ASSIGN_REF = ref(db, 'seating2/assignments');
+const GUESTS_REF = ref(db, 'seating2/guests');
+const META_REF = ref(db, 'seating2/meta');
+
 let GUESTS = [
   {n:"Астамур Омарович Логуа",o:"Министр туризма, Республика Абхазия"},
   {n:"Дмитрий Робертович Зантария",o:"Заместитель министра туризма, Республика Абхазия"},
@@ -235,56 +261,73 @@ let GUESTS = [
   {n:"Мордвинцева Л.И.",o:"Заместитель директора Международного туристического форума «Путешествуй!»"},
   {n:"Шинский Павел Николаевич",o:"Генеральный директор Франко-российской торгово-промышленной палаты"},
   {n:"Чеканова Юлия Андреевна",o:"Амбассадор Discover Russia"},
-  {n:"Козлов Евгений Александрович",o:"Глава комитета по туризму"},
+  {n:"Козлов Евгений Александрович",o:"Глава комитета по туризму"}
 ];
 const DEFAULT_POS = {
   1:[206,412],2:[170,411],3:[216,365],4:[132,407],5:[215,335],6:[132,374],7:[213,305],8:[132,341],9:[214,279],10:[132,309],11:[213,253],12:[132,274],13:[214,223],14:[132,242],15:[214,197],16:[132,210],17:[235,164],18:[132,178],19:[256,187],20:[132,145],21:[288,162],22:[132,113],23:[314,188],24:[151,88],25:[350,172],26:[185,85],27:[350,209],28:[222,83],29:[350,240],30:[255,83],31:[351,273],32:[287,83],33:[350,312],34:[318,83],35:[350,340],36:[350,81],37:[350,371],38:[384,82],39:[430,105],40:[430,133],41:[430,161],42:[430,193],43:[430,229],44:[430,261],45:[430,297],46:[430,335],47:[430,368],48:[430,398],49:[405,416],50:[353,415]
 };
 
-const STORAGE_KEY = 'seating-constructor-positions';
-function safeStorage(){
-  try{
-    const key='__seat_test__';
-    localStorage.setItem(key,'1');
-    localStorage.removeItem(key);
-    return localStorage;
-  }catch(e){
-    return null;
-  }
-}
-const storage = safeStorage();
-
-function loadSavedPositions(){
-  try{
-    if(!storage) return JSON.parse(JSON.stringify(DEFAULT_POS));
-    const raw = storage.getItem(STORAGE_KEY);
-    if(!raw) return JSON.parse(JSON.stringify(DEFAULT_POS));
-    const saved = JSON.parse(raw);
-    const merged = JSON.parse(JSON.stringify(DEFAULT_POS));
-    for(const key in saved){
-      if(merged[key] && Array.isArray(saved[key]) && saved[key].length === 2) merged[key] = saved[key];
-    }
-    return merged;
-  }catch(e){
-    return JSON.parse(JSON.stringify(DEFAULT_POS));
-  }
-}
-function savePositions(){ if(storage) storage.setItem(STORAGE_KEY, JSON.stringify(POS)); }
-let POS = loadSavedPositions();
-const ASSIGN_KEY = 'seating-constructor-assignments';
-function loadAssignments(){
-  try{ return storage ? JSON.parse(storage.getItem(ASSIGN_KEY) || '{}') : {}; }catch(e){ return {}; }
-}
-function saveAssignments(){ if(storage) storage.setItem(ASSIGN_KEY, JSON.stringify(ASSIGN)); }
-
-const ASSIGN = loadAssignments();
+let POS = JSON.parse(JSON.stringify(DEFAULT_POS));
+let ASSIGN = {};
 let filterQ='';
 let dropQ='';
 let activeSeat=null;
 let constructorMode=false;
 let draggedSeat=null;
+let hydrated = false;
+let syncTimeout = null;
 
-function init(){buildTable();buildSeats();initDropdown();bindConstructor();}
+function setSyncStatus(text, cls='') {
+  const el = document.getElementById('sync-status');
+  el.textContent = text;
+  el.className = 'sync-status' + (cls ? ' ' + cls : '');
+}
+
+function deepClone(v){ return JSON.parse(JSON.stringify(v)); }
+function normalizePositions(input){
+  const merged = deepClone(DEFAULT_POS);
+  if(!input || typeof input !== 'object') return merged;
+  for(const key in input){
+    const val = input[key];
+    if(merged[key] && Array.isArray(val) && val.length === 2){
+      merged[key] = [Number(val[0]) || merged[key][0], Number(val[1]) || merged[key][1]];
+    }
+  }
+  return merged;
+}
+function normalizeAssignments(input){
+  const out = {};
+  if(!input || typeof input !== 'object') return out;
+  for(const key in input){
+    const v = input[key];
+    if(v && typeof v.n === 'string') out[key] = { n: v.n, o: typeof v.o === 'string' ? v.o : '' };
+  }
+  return out;
+}
+function normalizeGuests(input){
+  if(!Array.isArray(input) || !input.length) return GUESTS;
+  return input.filter(v => v && typeof v.n === 'string').map(v => ({ n: v.n, o: typeof v.o === 'string' ? v.o : '' }));
+}
+
+async function ensureInitialData(){
+  const snap = await get(ROOT_REF);
+  if(!snap.exists()){
+    await set(ROOT_REF, {
+      positions: DEFAULT_POS,
+      assignments: {},
+      guests: GUESTS,
+      meta: { updatedAt: Date.now(), version: 1 }
+    });
+  }
+}
+
+function init(){
+  buildTable();
+  buildSeats();
+  initDropdown();
+  bindConstructor();
+  bindFirebase();
+}
 function buildTable(){const tb=document.getElementById('tbody');tb.innerHTML='';for(let s=1;s<=50;s++){const a=ASSIGN[s];const visible=!filterQ||String(s).includes(filterQ)||(a&&(a.n.toLowerCase().includes(filterQ)||a.o.toLowerCase().includes(filterQ)));if(!visible)continue;const tr=document.createElement('tr');tr.innerHTML=`<td><span class="badge ${a?'':'empty'}">${s}</span></td><td><button class="combo-btn ${a?'filled':''}" onclick="openDrop(${s},this)">${a?a.n:'<span class="ph">— выбрать —</span>'}</button></td><td><span class="org" title="${a?a.o:''}">${a?a.o:''}</span></td>`;tb.appendChild(tr);}}
 function buildSeats(){const ov=document.getElementById('overlay');ov.innerHTML='';const scheme=document.getElementById('scheme');if(constructorMode)scheme.classList.add('constructor-on');else scheme.classList.remove('constructor-on');for(let s=1;s<=50;s++){const [x,y]=POS[s];const a=ASSIGN[s];const node=document.createElement('div');node.className='seat';node.dataset.seat=s;node.style.left=(x/560*100)+'%';node.style.top=(y/600*100)+'%';node.innerHTML=`<div class="seat-dot ${a?'filled':''}" title="Место ${s}">${s}</div><div class="seat-name ${a?'on':''}">${a?a.n.split(' ')[0]:''}</div>`;const dot=node.querySelector('.seat-dot');dot.addEventListener('mousedown',startDrag);dot.addEventListener('touchstart',startDrag,{passive:false});dot.addEventListener('click',()=>selectSeat(s));ov.appendChild(node);}updateSelected();}
 function selectSeat(seat){const [x,y]=POS[seat];document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(x)}, y: ${Math.round(y)}`;activeSeat=seat;}
@@ -292,20 +335,94 @@ function updateSelected(){if(activeSeat&&POS[activeSeat])selectSeat(activeSeat);
 function bindConstructor(){document.getElementById('toggle-constructor').onclick=()=>{constructorMode=!constructorMode;document.getElementById('toggle-constructor').textContent='Конструктор: '+(constructorMode?'вкл':'выкл');document.getElementById('mode-text').textContent=constructorMode?'Режим конструктора':'Режим просмотра';document.getElementById('hint-text').textContent=constructorMode?'Тяни кружки мест мышкой или пальцем. Координаты обновляются сразу.':'Включи конструктор, чтобы двигать места.';buildSeats();};document.addEventListener('mousemove',onDrag);document.addEventListener('mouseup',endDrag);document.addEventListener('touchmove',onDrag,{passive:false});document.addEventListener('touchend',endDrag);}
 function getPoint(e){if(e.touches&&e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY};if(e.changedTouches&&e.changedTouches[0]) return {x:e.changedTouches[0].clientX,y:e.changedTouches[0].clientY};return {x:e.clientX,y:e.clientY};}
 function startDrag(e){if(!constructorMode)return;const seatEl=e.target.closest('.seat');if(!seatEl)return;draggedSeat=seatEl;seatEl.classList.add('dragging');const s=+seatEl.dataset.seat;selectSeat(s);e.preventDefault();}
-function onDrag(e){if(!draggedSeat||!constructorMode)return;const point=getPoint(e);const rect=document.getElementById('scheme').getBoundingClientRect();let px=((point.x-rect.left)/rect.width)*560;let py=((point.y-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];savePositions();draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;if(e.cancelable)e.preventDefault();}
-function endDrag(){if(!draggedSeat) return;draggedSeat.classList.remove('dragging');draggedSeat = null;savePositions();}
-function resetPositions(){if(!confirm('Сбросить все позиции мест к исходным?')) return;POS = JSON.parse(JSON.stringify(DEFAULT_POS));savePositions();buildSeats();toast('Позиции сброшены');}
+function onDrag(e){if(!draggedSeat||!constructorMode)return;const point=getPoint(e);const rect=document.getElementById('scheme').getBoundingClientRect();let px=((point.x-rect.left)/rect.width)*560;let py=((point.y-rect.top)/rect.height)*600;px=Math.max(10,Math.min(550,px));py=Math.max(10,Math.min(590,py));const seat=+draggedSeat.dataset.seat;POS[seat]=[Math.round(px),Math.round(py)];draggedSeat.style.left=(px/560*100)+'%';draggedSeat.style.top=(py/600*100)+'%';document.getElementById('selected-seat').value='Место '+seat;document.getElementById('selected-coords').value=`x: ${Math.round(px)}, y: ${Math.round(py)}`;queuePositionsSync();if(e.cancelable)e.preventDefault();}
+async function endDrag(){if(!draggedSeat) return;draggedSeat.classList.remove('dragging');draggedSeat = null;await syncPositionsNow();}
+async function resetPositions(){if(!confirm('Сбросить все позиции мест к исходным?')) return;POS = deepClone(DEFAULT_POS);buildSeats();await syncPositionsNow();toast('Позиции сброшены');}
 function copyCoords(){const text=JSON.stringify(POS,null,2);navigator.clipboard.writeText(text).then(()=>toast('Координаты скопированы')).catch(()=>toast('Не удалось скопировать'));}
 function downloadCoords(){const blob=new Blob([JSON.stringify(POS,null,2)],{type:'application/json;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='seating-coordinates.json';a.click();toast('JSON скачан');}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(()=>t.classList.remove('show'),1800);}
-function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?')) return;for(let k in ASSIGN) delete ASSIGN[k];saveAssignments();buildTable();buildSeats();toast('Список гостей очищен');}
+async function clearAllAssignments(){if(!confirm('Очистить всех гостей из мест?')) return;ASSIGN = {};buildTable();buildSeats();await syncAssignments();toast('Список гостей очищен');}
 function filterTable(v){filterQ=v.trim().toLowerCase();buildTable();}
-function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=()=>{if(activeSeat){delete ASSIGN[activeSeat];saveAssignments();closeDrop();buildTable();buildSeats();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});document.addEventListener('touchstart',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();},{passive:true});}
+function initDropdown(){const dd=document.getElementById('dropdown');const ds=document.getElementById('drop-search');document.getElementById('drop-clear').onclick=async()=>{if(activeSeat){delete ASSIGN[activeSeat];buildTable();buildSeats();await syncAssignments();closeDrop();toast('Место очищено');}};ds.oninput=()=>{dropQ=ds.value.toLowerCase();renderDrop();};document.addEventListener('mousedown',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();});document.addEventListener('touchstart',(e)=>{if(!dd.contains(e.target)&&!e.target.closest('.combo-btn'))closeDrop();},{passive:true});}
 function openDrop(seat,btn){activeSeat=seat;selectSeat(seat);dropQ='';document.getElementById('drop-search').value='';renderDrop();const dd=document.getElementById('dropdown');const r=btn.getBoundingClientRect();if(window.innerWidth<=720){dd.style.left='12px';dd.style.right='12px';dd.style.top=Math.max(12, r.bottom + 6)+'px';}else{dd.style.right='auto';dd.style.left=Math.min(r.left,window.innerWidth-340)+'px';dd.style.top=(r.bottom+4)+'px';}dd.classList.add('open');setTimeout(()=>document.getElementById('drop-search').focus(),20);}
 function closeDrop(){document.getElementById('dropdown').classList.remove('open');}
 function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.onmousedown=(e)=>{e.preventDefault();assignGuest(g);};el.ontouchstart=(e)=>{e.preventDefault();assignGuest(g);};body.appendChild(el);});}
-function assignGuest(g){if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};saveAssignments();closeDrop();buildTable();buildSeats();toast('Гость назначен на место '+activeSeat);}}
-function addGuest(){const nameInput = document.getElementById('new-guest-name');const orgInput = document.getElementById('new-guest-org');const name = nameInput.value.trim();const org = orgInput.value.trim();if(!name){toast('Введите имя приглашённого');nameInput.focus();return;}GUESTS.push({ n: name, o: org });nameInput.value = '';orgInput.value = '';if(document.getElementById('dropdown').classList.contains('open')) renderDrop();toast('Приглашённый добавлен в список');}
+async function assignGuest(g){if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};closeDrop();buildTable();buildSeats();await syncAssignments();toast('Гость назначен на место '+activeSeat);}}
+async function addGuest(){const nameInput = document.getElementById('new-guest-name');const orgInput = document.getElementById('new-guest-org');const name = nameInput.value.trim();const org = orgInput.value.trim();if(!name){toast('Введите имя приглашённого');nameInput.focus();return;}if(GUESTS.some(g => g.n.toLowerCase() === name.toLowerCase())){toast('Такой приглашённый уже есть');return;}GUESTS.push({ n: name, o: org });nameInput.value = '';orgInput.value = '';if(document.getElementById('dropdown').classList.contains('open')) renderDrop();await syncGuests();toast('Приглашённый добавлен в список');}
+
+function queuePositionsSync(){
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(() => { syncPositionsNow(); }, 250);
+}
+async function markUpdated(){
+  await update(META_REF, { updatedAt: Date.now() });
+}
+async function syncPositionsNow(){
+  try{
+    await set(POS_REF, POS);
+    await markUpdated();
+    setSyncStatus('Синхронизация активна. Изменения по местам сохраняются в Firebase.', 'ok');
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Ошибка записи позиций в Firebase. Проверь rules и подключение.', 'err');
+    toast('Ошибка сохранения позиций');
+  }
+}
+async function syncAssignments(){
+  try{
+    await set(ASSIGN_REF, ASSIGN);
+    await markUpdated();
+    setSyncStatus('Синхронизация активна. Изменения по гостям сохраняются в Firebase.', 'ok');
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Ошибка записи гостей в Firebase. Проверь rules и подключение.', 'err');
+    toast('Ошибка сохранения гостей');
+  }
+}
+async function syncGuests(){
+  try{
+    await set(GUESTS_REF, GUESTS);
+    await markUpdated();
+    setSyncStatus('Список приглашённых синхронизирован с Firebase.', 'ok');
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Ошибка записи списка приглашённых в Firebase.', 'err');
+    toast('Ошибка сохранения списка');
+  }
+}
+
+async function bindFirebase(){
+  try{
+    setSyncStatus('Подключение к Firebase…');
+    await ensureInitialData();
+    onValue(ROOT_REF, (snapshot) => {
+      const data = snapshot.val() || {};
+      POS = normalizePositions(data.positions);
+      ASSIGN = normalizeAssignments(data.assignments);
+      GUESTS = normalizeGuests(data.guests);
+      hydrated = true;
+      buildTable();
+      buildSeats();
+      if(document.getElementById('dropdown').classList.contains('open')) renderDrop();
+      setSyncStatus('Firebase подключен. Все пользователи видят общие актуальные данные.', 'ok');
+    }, (error) => {
+      console.error(error);
+      setSyncStatus('Не удалось читать данные из Firebase. Проверь rules.', 'err');
+    });
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Ошибка инициализации Firebase. Проверь databaseURL и rules.', 'err');
+  }
+}
+
+window.resetPositions = resetPositions;
+window.copyCoords = copyCoords;
+window.downloadCoords = downloadCoords;
+window.clearAllAssignments = clearAllAssignments;
+window.filterTable = filterTable;
+window.openDrop = openDrop;
+window.addGuest = addGuest;
+
 init();
 </script>
 </body>
