@@ -402,6 +402,7 @@ async function bindFirebase(){
   try{
     setSyncStatus('Подключение к Firebase…');
     await ensureInitialData();
+    await set(GUESTS_REF, GUESTS);
     onValue(ROOT_REF, (snapshot) => {
       const data = snapshot.val() || {};
       POS = normalizePositions(data.positions);
