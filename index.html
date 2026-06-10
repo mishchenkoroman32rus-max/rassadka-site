@@ -132,11 +132,14 @@ table{width:100%;border-collapse:collapse}thead th{position:sticky;top:0;backgro
         <div class="tool-box"><label>Координаты</label><input id="selected-coords" value="x: —, y: —" readonly></div>
       </div>
       <div class="tool-box" style="display:flex;flex-direction:column;gap:8px">
-        <label>Добавить приглашённого</label>
-        <input id="new-guest-name" placeholder="ФИО или текст, например: Шинский Павел Николаевич +1">
-        <input id="new-guest-org" placeholder="Организация / комментарий">
-        <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
-      </div>
+  <label>Добавить / удалить приглашённого</label>
+  <input id="new-guest-name" placeholder="ФИО или текст, например: Шинский Павел Николаевич +1">
+  <input id="new-guest-org" placeholder="Организация / комментарий">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn btn-success" type="button" onclick="addGuest()">Добавить в список</button>
+    <button class="btn btn-outline" type="button" onclick="removeGuestByInput()">Удалить из списка</button>
+  </div>
+</div>
     </div>
     <div class="sync-status" id="sync-status">Локальный режим. Ожидание подключения к Firebase…</div>
     <div class="table-wrap">
@@ -396,7 +399,48 @@ function closeDrop(){document.getElementById('dropdown').classList.remove('open'
 function renderDrop(){const body=document.getElementById('drop-body');body.innerHTML='';const used=new Set(Object.entries(ASSIGN).filter(([k])=>+k!==activeSeat).map(([,v])=>v.n));const list=GUESTS.filter(g=>!used.has(g.n)&&(!dropQ||g.n.toLowerCase().includes(dropQ)||g.o.toLowerCase().includes(dropQ)));if(!list.length){body.innerHTML='<div class="drop-item" style="cursor:default"><span class="di-org">Ничего не найдено</span></div>';return;}list.forEach(g=>{const el=document.createElement('div');el.className='drop-item';el.innerHTML=`<span class="di-name">${g.n}</span><span class="di-org">${g.o}</span>`;el.addEventListener('click',()=>assignGuest(g));body.appendChild(el);});}
 async function assignGuest(g){if(activeSeat){ASSIGN[activeSeat]={n:g.n,o:g.o};closeDrop();buildTable();buildSeats();await syncAssignments();toast('Гость назначен на место '+activeSeat);}}
 async function addGuest(){const nameInput = document.getElementById('new-guest-name');const orgInput = document.getElementById('new-guest-org');const name = nameInput.value.trim();const org = orgInput.value.trim();if(!name){toast('Введите имя приглашённого');nameInput.focus();return;}if(GUESTS.some(g => g.n.toLowerCase() === name.toLowerCase())){toast('Такой приглашённый уже есть');return;}GUESTS.push({ n: name, o: org });nameInput.value = '';orgInput.value = '';if(document.getElementById('dropdown').classList.contains('open')) renderDrop();await syncGuests();toast('Приглашённый добавлен в список');}
+async function removeGuestByInput(){
+  const nameInput = document.getElementById('new-guest-name');
+  const orgInput = document.getElementById('new-guest-org');
+  const name = nameInput.value.trim();
 
+  if(!name){
+    toast('Введите имя приглашённого для удаления');
+    nameInput.focus();
+    return;
+  }
+
+  const found = GUESTS.find(g => g.n.toLowerCase() === name.toLowerCase());
+
+  if(!found){
+    toast('Такой приглашённый не найден');
+    return;
+  }
+
+  if(!confirm(`Удалить "${found.n}" из списка гостей?`)) return;
+
+  GUESTS = GUESTS.filter(g => g.n.toLowerCase() !== name.toLowerCase());
+
+  for(const seat in ASSIGN){
+    if(ASSIGN[seat] && ASSIGN[seat].n.toLowerCase() === name.toLowerCase()){
+      delete ASSIGN[seat];
+    }
+  }
+
+  nameInput.value = '';
+  orgInput.value = '';
+
+  buildTable();
+  buildSeats();
+
+  if(document.getElementById('dropdown').classList.contains('open')){
+    renderDrop();
+  }
+
+  await syncGuests();
+  await syncAssignments();
+  toast('Приглашённый удалён из списка');
+}
 function queuePositionsSync(){
   clearTimeout(syncTimeout);
   syncTimeout = setTimeout(() => { syncPositionsNow(); }, 250);
@@ -442,8 +486,7 @@ async function bindFirebase(){
   try{
     setSyncStatus('Подключение к Firebase…');
     await ensureInitialData();
-    await set(GUESTS_REF, GUESTS);
-    onValue(ROOT_REF, (snapshot) => {
+onValue(ROOT_REF, (snapshot) => {
       const data = snapshot.val() || {};
       POS = normalizePositions(data.positions);
       ASSIGN = normalizeAssignments(data.assignments);
@@ -470,7 +513,7 @@ window.clearAllAssignments = clearAllAssignments;
 window.filterTable = filterTable;
 window.openDrop = openDrop;
 window.addGuest = addGuest;
-
+window.removeGuestByInput = removeGuestByInput;
 init();
 </script>
 </body>
